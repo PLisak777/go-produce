@@ -34,12 +34,12 @@ var Food []Produce
 // UnitPrice is a number with 2 decimal places
 func (p Produce) Validate(r *http.Request) error {
 	if len(p.ProduceCode) != 19 {
-		return errors.New("Invalid Produce Code")
+		return errors.New("invalid produce code")
 	}
 	chars := []rune(p.ProduceCode)
 
 	if !govalidator.IsAlphanumeric(string(chars[0:3])) {
-		return errors.New("Invalid Produce Code")
+		return errors.New("invalid produce code")
 	}
 	return nil
 }
@@ -118,17 +118,38 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 
 	channelHandler := make(chan []Produce)
 	go func(items []Produce) {
-		for _, item := range items {
-			Food = append(Food, item)
-		}
+			Food = append(Food, items...)
 		channelHandler <- items
 	}(itemsToAdd)
 }
 
+// DeleteFood: Method used to delete items from database
+func DeleteFood(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("DELETE /produce/{code}: DeleteFood")
+	channelHandler := make(chan bool)
+
+	go func() {
+		vars := mux.Vars(r)
+		code := vars["code"]
+		var deletedItem bool = false
+		for index, item := range Food {
+			if item.ProduceCode == code {
+				Food = append(Food[:index], Food[index + 1:]...)
+				deletedItem = true
+				break
+			}
+		}
+		channelHandler <- deletedItem
+	}()
+}
+
+// requestHandler: Will handle all router functions with mux
 func requestHandler() {
 	foodRouter := mux.NewRouter().StrictSlash(true)
 	foodRouter.HandleFunc("/produce", GetAllFoods)
 	foodRouter.HandleFunc("/produce/{code}", GetFoodByCode)
+	foodRouter.HandleFunc("/produce", AddFood).Methods("POST")
+	foodRouter.HandleFunc("/produce/{code}", DeleteFood).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8000", foodRouter))
 }
 
