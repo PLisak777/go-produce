@@ -13,25 +13,18 @@ import (
 	"github.com/asaskevich/govalidator"
 )
 
-// Produce: structured list of produce items in market
 type Produce struct {
 	ProduceCode string `json:"code"`
 	Name        string `json:"name"`
 	UnitPrice   string `json:"price"`
 }
 
-// ItemValidator: Validation interface for required fields
 type ItemValidator interface {
 	Validate(r *http.Request) error
 }
 
-// Food: Array of Produce items
 var Food []Produce
 
-// We use Validate as a function to make sure user is entering required info
-// ProduceCode should be 16 chars long alphanumeric and case insensitive with dashes 		 	  separating each group of 4 chars
-// Name should be alphanumeric and case insensitive
-// UnitPrice is a number with 2 decimal places
 func (p Produce) Validate(r *http.Request) error {
 	if len(p.ProduceCode) != 19 {
 		return errors.New("invalid produce code")
@@ -69,18 +62,15 @@ func (p Produce) Validate(r *http.Request) error {
 	return nil
 }
 
-// Interface method for item validation
 func Validate(r *http.Request, v ItemValidator) error {
 	return v.Validate(r)
 }
 
-// GetAllFoods: Displays all items in produce list
 func GetAllFoods(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GET /produce: GetAllFoods")
 	json.NewEncoder(w).Encode(Food)
 }
 
-// GetFoodByCode: Displays particular item by product code
 func GetFoodByCode(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GET /produce/{code}: GetFoodByCode")
 	channelHandler := make(chan Produce)
@@ -107,7 +97,6 @@ func GetFoodByCode(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(foundItem)
 }
 
-// AddFood: Method to create and add one or more new food items to database
 func AddFood(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("POST /produce: AddFood")
 
@@ -153,7 +142,6 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(addedItems)
 }
 
-// DeleteFood: Method used to delete items from database
 func DeleteFood(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("DELETE /produce/{code}: DeleteFood")
 	channelHandler := make(chan bool)
@@ -180,7 +168,6 @@ func DeleteFood(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// requestHandler: Will handle all router functions with mux
 func requestHandler() {
 	foodRouter := mux.NewRouter().StrictSlash(true)
 	foodRouter.HandleFunc("/produce", GetAllFoods)
@@ -191,7 +178,6 @@ func requestHandler() {
 }
 
 func main() {
-	// Queue up the Food array
 	Food = []Produce {
 		{ProduceCode: "A12T-4GH7-QPL9-3N4M", Name: "Lettuce", UnitPrice: "3.64"},
 		{ProduceCode: "E5T6-9UI3-TH15-QR88", Name: "Peach", UnitPrice: "2.99"},
