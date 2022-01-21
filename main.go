@@ -121,6 +121,11 @@ func AddFood(w http.ResponseWriter, r *http.Request) {
 			Food = append(Food, items...)
 		channelHandler <- items
 	}(itemsToAdd)
+
+	addedItems := <- channelHandler
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(addedItems)
 }
 
 // DeleteFood: Method used to delete items from database
@@ -134,13 +139,20 @@ func DeleteFood(w http.ResponseWriter, r *http.Request) {
 		var deletedItem bool = false
 		for index, item := range Food {
 			if item.ProduceCode == code {
-				Food = append(Food[:index], Food[index + 1:]...)
+				Food = append(Food[:index], Food[index+1:]...)
 				deletedItem = true
 				break
 			}
 		}
 		channelHandler <- deletedItem
 	}()
+
+	itemDeleted := <- channelHandler
+	if itemDeleted {
+		w.WriteHeader(http.StatusNoContent)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+	}
 }
 
 // requestHandler: Will handle all router functions with mux
@@ -148,8 +160,8 @@ func requestHandler() {
 	foodRouter := mux.NewRouter().StrictSlash(true)
 	foodRouter.HandleFunc("/produce", GetAllFoods)
 	foodRouter.HandleFunc("/produce/{code}", GetFoodByCode)
-	foodRouter.HandleFunc("/produce", AddFood).Methods("POST")
-	foodRouter.HandleFunc("/produce/{code}", DeleteFood).Methods("DELETE")
+	foodRouter.HandleFunc("/groceries", AddFood).Methods("POST")
+	foodRouter.HandleFunc("/groceries/{code}", DeleteFood).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8000", foodRouter))
 }
 
