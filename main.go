@@ -41,6 +41,31 @@ func (p Produce) Validate(r *http.Request) error {
 	if !govalidator.IsAlphanumeric(string(chars[0:3])) {
 		return errors.New("invalid produce code")
 	}
+
+	if !govalidator.IsAlphanumeric(string(chars[5:8])) {
+		return errors.New("invalid produce code")
+	}
+
+	if !govalidator.IsAlphanumeric(string(chars[10:13])) {
+		return errors.New("invalid produce code")
+	}
+
+	if !govalidator.IsAlphanumeric(string(chars[15:18])) {
+		return errors.New("invalid produce code")
+	}
+
+	if govalidator.IsNull(p.Name) {
+		return errors.New("invalid name")
+	}
+
+	if !govalidator.IsAlphanumeric(p.Name) {
+		return errors.New("invalid name")
+	}
+
+	if !govalidator.IsFloat(p.UnitPrice) {
+		return errors.New("invalid price")
+	}
+	
 	return nil
 }
 
