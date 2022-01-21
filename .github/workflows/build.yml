@@ -1,0 +1,32 @@
+
+name: CICD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: latest
+      - 
+        name: Install dependencies
+        run: |
+          go version
+          go get .
+      -
+        name: Run build
+        run: go build .
+      -
+        name: Run testing
+        run: go test -v
+        
